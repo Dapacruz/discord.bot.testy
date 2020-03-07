@@ -1,0 +1,15 @@
+{
+  "name": "testy",
+  "version": "1.0.0",
+  "description": "Test Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "David Cruz",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^12.0.1",
+    "giphy-js-sdk-core": "^1.0.6"
+  }
+}

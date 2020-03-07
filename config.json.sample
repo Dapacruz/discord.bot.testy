@@ -1,0 +1,6 @@
+{
+	"prefix": "!",
+	"token": "your-api-key",
+	"sonarrToken": "your-api-key",
+	"giphyToken": "your-api-key"
+}
