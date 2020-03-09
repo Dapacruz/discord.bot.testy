@@ -224,6 +224,12 @@ bot.on('message', async (message) => {
 
 		case 'avatar':
 			message.reply(message.author.avatar);
+			// for (let [ k, v ] of message.guild.roles.RoleManager) {
+			// 	console.log(k, v);
+			// }
+			message.guild.roles.cache.forEach(function(role) {
+				console.log(role.name);
+			});
 			break;
 
 		case 'net.iface.ip.public':
@@ -300,6 +306,27 @@ bot.on('message', async (message) => {
 					});
 				} catch (err) {
 					console.log(err);
+				}
+			}
+			break;
+
+		case 'whois':
+			if (message.author.id === ownerAuthorID) {
+				try {
+					let userID = message.content.replace('!whois ', '');
+					console.log(userID);
+					if (userID === 'undefined') {
+						message.channel.send(`${'Invalid user ID!'}`);
+					} else {
+						let userName = bot.users.fetch(userID);
+						console.log(userName);
+						message.channel.send(
+							`User: ${(await userName).tag}\nUser ID: ${userID}\nAvatar: ${(await userName)
+								.avatar}\nhttps://cdn.discordapp.com/app-icons/${userID}/${(await userName).avatar}.png`
+						);
+					}
+				} catch (err) {
+					message.channel.send('Invalid user ID!');
 				}
 			}
 			break;
