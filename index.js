@@ -1,4 +1,4 @@
-const { prefix, ownerAuthorID, token, sonarrToken, giphyToken } = require('./config.json');
+const { prefix, ownerAuthorID, token, sonarrToken, radarrToken, giphyToken } = require('./config.json');
 
 const { exec } = require('child_process');
 
@@ -15,7 +15,8 @@ const GphApiClient = require('giphy-js-sdk-core');
 const giphy = GphApiClient(giphyToken);
 
 const lolLogo = 'https://i.imgur.com/zhuRs3K.png';
-const sonarrLogo = 'https://i.imgur.com/tQZLr55.png';
+const sonarrLogo = 'https://i.imgur.com/zMUOCnv.png';
+const radarrLogo = 'https://i.imgur.com/BxwzHlD.png';
 const colorBlue = '#00A1FF';
 const colorRed = '#CC0000';
 const colorGreen = '#39FF5C';
@@ -103,7 +104,7 @@ bot.on('message', async (message) => {
 			break;
 
 		case 'sonarr.search':
-			queryIndex = message.content.indexOf(' ') + 1;
+			var queryIndex = message.content.indexOf(' ') + 1;
 			if (queryIndex) {
 				query = message.content.slice(queryIndex);
 			} else {
@@ -120,10 +121,7 @@ bot.on('message', async (message) => {
 					var results = '';
 					res.forEach(function(show) {
 						if (show.title.match(new RegExp(query, 'i'))) {
-							results += `[${show.title}](http://sonarr.thecruzs.net/series/${show.titleSlug
-								.replace(/\s/g, '-')
-								.replace(/[()]/g, '')
-								.toLowerCase()})\n`;
+							results += `[${show.title}](http://sonarr.thecruzs.net/series/${show.titleSlug})\n`;
 							count += 1;
 						}
 					});
@@ -219,6 +217,53 @@ bot.on('message', async (message) => {
 						.setThumbnail(sonarrLogo)
 						.setDescription(description);
 					message.channel.send(sonarrInfo);
+				}
+			};
+			break;
+
+		case 'radarr.search':
+			var queryIndex = message.content.indexOf(' ') + 1;
+			if (queryIndex) {
+				query = message.content.slice(queryIndex);
+			} else {
+				query = '';
+			}
+			var url = `http://radarr.thecruzs.net/api/movie/?apikey=${radarrToken}`;
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', url);
+			xhr.send();
+			xhr.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					var res = JSON.parse(this.responseText);
+					var count = 0;
+					var results = '';
+					res.forEach(function(movie) {
+						if (movie.title.match(new RegExp(query, 'i'))) {
+							results += `[${movie.title}](http://radarr.thecruzs.net/movies/${movie.titleSlug})\n`;
+							count += 1;
+						}
+					});
+
+					if (count == 0) {
+						message.channel.send('No matches found!');
+						return;
+					}
+
+					const sonarrShows = new Discord.MessageEmbed()
+						.setColor(colorBlue)
+						.setTitle('Your Shows')
+						.setThumbnail(radarrLogo)
+						.setDescription(results);
+					message.channel.send(sonarrShows).catch(function(err) {
+						const tooManyShows = new Discord.MessageEmbed()
+							.setColor(colorBlue)
+							.setTitle('Your Shows')
+							.setThumbnail(radarrLogo)
+							.setDescription(
+								'Too many results found\nPlease visit [Radarr](http://radarr.thecruzs.net/)'
+							);
+						message.channel.send(tooManyShows);
+					});
 				}
 			};
 			break;
