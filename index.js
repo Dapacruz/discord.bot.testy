@@ -14,7 +14,7 @@ const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const GphApiClient = require('giphy-js-sdk-core');
 const giphy = GphApiClient(giphyToken);
 
-const lolLogo = 'https://i.imgur.com/zhuRs3K.png';
+const routerIcon = 'https://i.imgur.com/hF7RRDx.png';
 const sonarrLogo = 'https://i.imgur.com/zMUOCnv.png';
 const radarrLogo = 'https://i.imgur.com/BxwzHlD.png';
 const colorBlue = '#00A1FF';
@@ -280,7 +280,7 @@ bot.on('message', async (message) => {
 						const publicIP = new Discord.MessageEmbed()
 							.setColor(colorGreen)
 							.setTitle('Public IP Address')
-							.setThumbnail(lolLogo)
+							.setThumbnail(routerIcon)
 							.setDescription(`Your public IP address is ${output}`);
 						message.channel.send(publicIP);
 					});
@@ -298,7 +298,7 @@ bot.on('message', async (message) => {
 						const privateIP = new Discord.MessageEmbed()
 							.setColor(colorGreen)
 							.setTitle('Private IP Address')
-							.setThumbnail(lolLogo)
+							.setThumbnail(routerIcon)
 							.setDescription(`Your private IP address is ${output}`);
 						message.channel.send(privateIP);
 					});
@@ -316,7 +316,7 @@ bot.on('message', async (message) => {
 						const gatewayIP = new Discord.MessageEmbed()
 							.setColor(colorGreen)
 							.setTitle('Gateway Address')
-							.setThumbnail(lolLogo)
+							.setThumbnail(routerIcon)
 							.setDescription(`Your gateway address is ${output}`);
 						message.channel.send(gatewayIP);
 					});
@@ -336,7 +336,7 @@ bot.on('message', async (message) => {
 						const interface = new Discord.MessageEmbed()
 							.setColor(colorGreen)
 							.setTitle('Interface Information')
-							.setThumbnail(lolLogo)
+							.setThumbnail(routerIcon)
 							.setDescription(output);
 						message.channel.send(interface);
 					});
