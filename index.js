@@ -9,6 +9,8 @@ const network = require('network');
 const Discord = require('discord.js');
 const bot = new Discord.Client();
 
+const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+
 const GphApiClient = require('giphy-js-sdk-core');
 const giphy = GphApiClient(giphyToken);
 
@@ -78,7 +80,7 @@ bot.on('message', async (message) => {
 			}
 			break;
 
-		case 'gif':
+		case 'giphy':
 			msg = message.content.replace(`${prefix}gif`, '').trim();
 			if (msg) {
 				try {
@@ -100,10 +102,14 @@ bot.on('message', async (message) => {
 			}
 			break;
 
-		case 'sonarr.show':
-			var query = message.content.slice(13);
+		case 'sonarr.search':
+			queryIndex = message.content.indexOf(' ') + 1;
+			if (queryIndex) {
+				query = message.content.slice(queryIndex);
+			} else {
+				query = '';
+			}
 			var url = `http://sonarr.thecruzs.net/api/series/?apikey=${sonarrToken}`;
-			var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 			var xhr = new XMLHttpRequest();
 			xhr.open('GET', url);
 			xhr.send();
@@ -148,7 +154,6 @@ bot.on('message', async (message) => {
 
 		case 'sonarr.history.imported':
 			var url = `http://sonarr.thecruzs.net/api/history/?apikey=${sonarrToken}`;
-			var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 			var xhr = new XMLHttpRequest();
 			xhr.open('GET', url);
 			xhr.send();
@@ -158,8 +163,6 @@ bot.on('message', async (message) => {
 					var description = '';
 					res.records.forEach(function(show) {
 						if (show.eventType === 'downloadFolderImported') {
-							console.log(`${show.series.title} (Season ${show.episode.seasonNumber})`);
-							console.log(`Episode ${show.episode.episodeNumber} - ${show.episode.title}`);
 							description += `${show.series.title} (Season ${show.episode.seasonNumber})
 							Episode ${show.episode.episodeNumber} - ${show.episode.title}\n\n`;
 						}
@@ -176,7 +179,6 @@ bot.on('message', async (message) => {
 
 		case 'sonarr.history.deleted':
 			var url = `http://sonarr.thecruzs.net/api/history/?apikey=${sonarrToken}`;
-			var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 			var xhr = new XMLHttpRequest();
 			xhr.open('GET', url);
 			xhr.send();
@@ -203,7 +205,6 @@ bot.on('message', async (message) => {
 
 		case 'sonarr.info':
 			var url = `http://sonarr.thecruzs.net/api/system/status?apikey=${sonarrToken}`;
-			var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 			var xhr = new XMLHttpRequest();
 			xhr.open('GET', url);
 			xhr.send();
@@ -224,19 +225,12 @@ bot.on('message', async (message) => {
 
 		case 'avatar':
 			message.reply(message.author.avatar);
-			// for (let [ k, v ] of message.guild.roles.RoleManager) {
-			// 	console.log(k, v);
-			// }
-			message.guild.roles.cache.forEach(function(role) {
-				console.log(role.name);
-			});
 			break;
 
 		case 'net.iface.ip.public':
 			if (message.author.id === ownerAuthorID) {
 				try {
 					network.get_public_ip(function(err, ip) {
-						console.log(`${err} || ${ip} `);
 						var output = err || `${ip}`;
 						const publicIP = new Discord.MessageEmbed()
 							.setColor(colorGreen)
@@ -255,7 +249,6 @@ bot.on('message', async (message) => {
 			if (message.author.id === ownerAuthorID) {
 				try {
 					network.get_private_ip(function(err, ip) {
-						console.log(`${err} || ${ip} `);
 						var output = err || `${ip}`;
 						const privateIP = new Discord.MessageEmbed()
 							.setColor(colorGreen)
@@ -274,7 +267,6 @@ bot.on('message', async (message) => {
 			if (message.author.id === ownerAuthorID) {
 				try {
 					network.get_gateway_ip(function(err, ip) {
-						console.log(`${err} || ${ip} `);
 						var output = err || `${ip}`;
 						const gatewayIP = new Discord.MessageEmbed()
 							.setColor(colorGreen)
@@ -293,7 +285,6 @@ bot.on('message', async (message) => {
 			if (message.author.id === ownerAuthorID) {
 				try {
 					network.get_active_interface(function(err, int) {
-						console.log(`${err} || ${int} `);
 						var output =
 							err ||
 							`Type: ${int.name}\nMac Address: ${int.mac_address}\nIP: ${int.ip_address}\nSubnet: ${int.netmask}\nGateway: ${int.gateway_ip}`;
@@ -314,12 +305,10 @@ bot.on('message', async (message) => {
 			if (message.author.id === ownerAuthorID) {
 				try {
 					let userID = message.content.replace('!whois ', '');
-					console.log(userID);
 					if (userID === 'undefined') {
 						message.channel.send(`${'Invalid user ID!'}`);
 					} else {
 						let userName = bot.users.fetch(userID);
-						console.log(userName);
 						message.channel.send(
 							`User: ${(await userName).tag}\nUser ID: ${userID}\nAvatar: ${(await userName)
 								.avatar}\nhttps://cdn.discordapp.com/app-icons/${userID}/${(await userName).avatar}.png`
