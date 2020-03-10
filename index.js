@@ -251,18 +251,18 @@ bot.on('message', async (message) => {
 
 					const sonarrShows = new Discord.MessageEmbed()
 						.setColor(colorBlue)
-						.setTitle('Your Shows')
+						.setTitle('Your Movies')
 						.setThumbnail(radarrLogo)
 						.setDescription(results);
 					message.channel.send(sonarrShows).catch(function(err) {
-						const tooManyShows = new Discord.MessageEmbed()
+						const tooManyMovies = new Discord.MessageEmbed()
 							.setColor(colorBlue)
-							.setTitle('Your Shows')
+							.setTitle('Your Movies')
 							.setThumbnail(radarrLogo)
 							.setDescription(
 								'Too many results found\nPlease visit [Radarr](http://radarr.thecruzs.net/)'
 							);
-						message.channel.send(tooManyShows);
+						message.channel.send(tooManyMovies);
 					});
 				}
 			};
