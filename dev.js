@@ -1,20 +1,25 @@
-// const { prefix, token, sonarrToken, giphyToken } = require('./config.json');
+const { prefix, token, sonarrToken, giphyToken } = require('./config.json');
+const fetch = require('node-fetch');
 
-// fetch(`http://sonarr.thecruzs.net/api/system/status?apikey=${sonarrToken}`)
-// 	.then((response) => {
-// 		if (response.status !== 200) {
-// 			console.log('Looks like there was a problem. Status Code: ' + response.status);
-// 			return;
-// 		}
+const sonarrURL = 'http://sonarr.thecruzs.net';
 
-// 		// Examine the text in the response
-// 		response.json().then((data) => {
-// 			console.log(data);
-// 		});
-// 	})
-// 	.catch((err) => {
-// 		console.log('Fetch Error :-S', err);
-// 	});
+fetch(`${sonarrURL}/api/series/?apikey=${sonarrToken}`)
+	.then((response) => {
+		if (response.status !== 200) {
+			console.log(`Looks like there was a problem. Status Code: ${response.status}`);
+			return;
+		}
 
-let str = "The Witcher"
-console.log(str.match(/witcher/ig) ? str : '')
+		// response.text().then((data) => console.log(data));
+
+		response.json().then((data) => {
+			data.forEach((entry) => {
+				Object.entries(entry).forEach(([ k, v ]) => {
+					console.log(`${k}: ${v}`);
+				});
+			});
+		});
+	})
+	.catch((err) => {
+		console.log('Fetch Error :-S', err);
+	});
