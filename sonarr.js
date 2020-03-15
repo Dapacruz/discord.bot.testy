@@ -4,6 +4,7 @@ const Discord = require('discord.js');
 const { sonarrToken } = require('./config.json');
 const url = 'http://sonarr.thecruzs.net';
 const logo = 'https://i.imgur.com/zMUOCnv.png';
+const red = '#CC0000';
 
 module.exports = {
 	getInfo: getInfo,
@@ -19,15 +20,10 @@ function getInfo(message, color) {
 		})
 		.then((json) => {
 			let description = `Version: ${json.version}\nHost OS: ${json.osName}\nOS Version: ${json.osVersion}\nSQLiteVersion: ${json.sqliteVersion}`;
-			const embed = new Discord.MessageEmbed()
-				.setColor(color)
-				.setTitle('Sonarr Information')
-				.setThumbnail(logo)
-				.setDescription(description);
-			message.channel.send(embed);
+			sendMessage(message, 'Sonarr Information', description, color);
 		})
 		.catch((err) => {
-			console.error(err);
+			sendMessage(message, 'Sonarr Information', err, red);
 		});
 }
 
@@ -57,23 +53,9 @@ function search(message, color) {
 				message.channel.send('No matches found!');
 				return;
 			}
-
-			const embed = new Discord.MessageEmbed()
-				.setColor(color)
-				.setTitle('Your Shows')
-				.setThumbnail(logo)
-				.setDescription(results);
-			message.channel.send(embed).catch((err) => {
-				const embed = new Discord.MessageEmbed()
-					.setColor(color)
-					.setTitle('Your Shows')
-					.setThumbnail(logo)
-					.setDescription(`Too many results found\nPlease visit [Sonarr](${url})`);
-				message.channel.send(embed);
+			sendMessage(message, 'Your Shows', results, color).catch(() => {
+				sendMessage(message, 'Your Shows', `Too many results found\nPlease visit [Sonarr](${url})`, red);
 			});
-		})
-		.catch((err) => {
-			console.error(err);
 		});
 }
 
@@ -91,14 +73,9 @@ function getImportHistory(message, color) {
 				}
 			});
 			if (description) {
-				const embed = new Discord.MessageEmbed()
-					.setColor(color)
-					.setTitle('Sonarr Completed Downloads')
-					.setThumbnail(logo)
-					.setDescription(description);
-				message.channel.send(embed);
+				sendMessage(message, 'Sonarr Completed Downloads', description, color);
 			} else {
-				message.channel.send('No recently imported items!');
+				sendMessage(message, 'Sonarr Completed Downloads', 'No recently imported items!', red);
 				return;
 			}
 		})
@@ -123,17 +100,25 @@ function getDeleteHistory(message, color) {
 				}
 			});
 			if (description) {
-				const embed = new Discord.MessageEmbed()
-					.setColor(color)
-					.setTitle('Sonarr Failed Downloads')
-					.setThumbnail(logo)
-					.setDescription(description);
-				message.channel.send(embed);
+				sendMessage(message, 'Sonarr Failed Downloads', description, color);
 			} else {
-				message.channel.send('No recently deleted items!');
+				sendMessage(message, 'Sonarr Failed Downloads', 'No recently deleted items!', red);
 			}
 		})
 		.catch((err) => {
 			console.error(err);
 		});
+}
+
+function sendMessage(message, title, description, color) {
+	return new Promise((resolve, reject) => {
+		const embed = new Discord.MessageEmbed()
+			.setColor(color)
+			.setTitle(title)
+			.setThumbnail(logo)
+			.setDescription(description);
+		message.channel.send(embed).catch(() => {
+			reject();
+		});
+	});
 }
