@@ -1,25 +1,20 @@
-const { prefix, ownerAuthorID, token, sonarrToken, radarrToken, giphyToken } = require('./config.json');
-
 const { exec } = require('child_process');
-
-var os = require('os');
-const ifaces = os.networkInterfaces();
-const network = require('network');
-
 const Discord = require('discord.js');
-const bot = new Discord.Client();
-
+const GphApiClient = require('giphy-js-sdk-core');
+const network = require('network');
+const os = require('os');
+const sonarr = require('./sonarr.js');
 const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 
-const GphApiClient = require('giphy-js-sdk-core');
-const giphy = GphApiClient(giphyToken);
-
+const { prefix, ownerAuthorID, token, radarrToken, giphyToken } = require('./config.json');
 const routerIcon = 'https://i.imgur.com/hF7RRDx.png';
-const sonarrLogo = 'https://i.imgur.com/zMUOCnv.png';
 const radarrLogo = 'https://i.imgur.com/BxwzHlD.png';
-const colorBlue = '#00A1FF';
-const colorRed = '#CC0000';
-const colorGreen = '#39FF5C';
+const blue = '#00A1FF';
+const red = '#CC0000';
+const green = '#39FF5C';
+
+const bot = new Discord.Client();
+const giphy = GphApiClient(giphyToken);
 
 bot.once('ready', () => {
 	console.log('Testy is now online!');
@@ -104,121 +99,19 @@ bot.on('message', async (message) => {
 			break;
 
 		case 'sonarr.search':
-			var queryIndex = message.content.indexOf(' ') + 1;
-			if (queryIndex) {
-				query = message.content.slice(queryIndex);
-			} else {
-				query = '';
-			}
-			var url = `http://sonarr.thecruzs.net/api/series/?apikey=${sonarrToken}`;
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', url);
-			xhr.send();
-			xhr.onreadystatechange = function() {
-				if (this.readyState == 4 && this.status == 200) {
-					var res = JSON.parse(this.responseText);
-					var count = 0;
-					var results = '';
-					res.forEach(function(show) {
-						if (show.title.match(new RegExp(query, 'i'))) {
-							results += `[${show.title}](http://sonarr.thecruzs.net/series/${show.titleSlug})\n`;
-							count += 1;
-						}
-					});
-
-					if (count == 0) {
-						message.channel.send('No matches found!');
-						return;
-					}
-
-					const sonarrShows = new Discord.MessageEmbed()
-						.setColor(colorBlue)
-						.setTitle('Your Shows')
-						.setThumbnail(sonarrLogo)
-						.setDescription(results);
-					message.channel.send(sonarrShows).catch(function(err) {
-						const tooManyShows = new Discord.MessageEmbed()
-							.setColor(colorBlue)
-							.setTitle('Your Shows')
-							.setThumbnail(sonarrLogo)
-							.setDescription(
-								'Too many results found\nPlease visit [Sonarr](http://sonarr.thecruzs.net/)'
-							);
-						message.channel.send(tooManyShows);
-					});
-				}
-			};
+			sonarr.search(message, blue);
 			break;
 
 		case 'sonarr.history.imported':
-			var url = `http://sonarr.thecruzs.net/api/history/?apikey=${sonarrToken}`;
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', url);
-			xhr.send();
-			xhr.onreadystatechange = function() {
-				if (this.readyState == 4 && this.status == 200) {
-					var res = JSON.parse(this.responseText);
-					var description = '';
-					res.records.forEach(function(show) {
-						if (show.eventType === 'downloadFolderImported') {
-							description += `${show.series.title} (Season ${show.episode.seasonNumber})
-							Episode ${show.episode.episodeNumber} - ${show.episode.title}\n\n`;
-						}
-					});
-					const sonarrDownloads = new Discord.MessageEmbed()
-						.setColor(colorBlue)
-						.setTitle('Sonarr Completed Downloads')
-						.setThumbnail(sonarrLogo)
-						.setDescription(description);
-					message.channel.send(sonarrDownloads);
-				}
-			};
+			sonarr.getImportHistory(message, blue);
 			break;
 
 		case 'sonarr.history.deleted':
-			var url = `http://sonarr.thecruzs.net/api/history/?apikey=${sonarrToken}`;
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', url);
-			xhr.send();
-			xhr.onreadystatechange = function() {
-				if (this.readyState == 4 && this.status == 200) {
-					var res = JSON.parse(this.responseText);
-					var description = '';
-					res.records.forEach(function(show) {
-						if (show.eventType === 'episodeFileDeleted') {
-							description += `${show.series.title} (Season ${show.episode.seasonNumber})
-							Episode ${show.episode.episodeNumber} - ${show.episode.title}
-							Reason: ${show.data.reason}\n\n`;
-						}
-					});
-					const sonarrDownloads = new Discord.MessageEmbed()
-						.setColor(colorBlue)
-						.setTitle('Sonarr Failed Downloads')
-						.setThumbnail(sonarrLogo)
-						.setDescription(description);
-					message.channel.send(sonarrDownloads);
-				}
-			};
+			sonarr.getDeleteHistory(message, blue);
 			break;
 
 		case 'sonarr.info':
-			var url = `http://sonarr.thecruzs.net/api/system/status?apikey=${sonarrToken}`;
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', url);
-			xhr.send();
-			xhr.onreadystatechange = function() {
-				if (this.readyState == 4 && this.status == 200) {
-					var show = JSON.parse(this.responseText);
-					let description = '';
-					description += `Version: ${show.version}\nHost OS: ${show.osName}\nOS Version: ${show.osVersion}\nSQLiteVersion: ${show.sqliteVersion}`;
-					const sonarrInfo = new Discord.MessageEmbed()
-						.setColor(colorBlue)
-						.setTitle('Sonarr Information')
-						.setThumbnail(sonarrLogo)
-						.setDescription(description);
-					message.channel.send(sonarrInfo);
-				}
-			};
+			sonarr.getInfo(message, blue);
 			break;
 
 		case 'radarr.search':
@@ -250,13 +143,13 @@ bot.on('message', async (message) => {
 					}
 
 					const sonarrShows = new Discord.MessageEmbed()
-						.setColor(colorBlue)
+						.setColor(blue)
 						.setTitle('Your Movies')
 						.setThumbnail(radarrLogo)
 						.setDescription(results);
 					message.channel.send(sonarrShows).catch(function(err) {
 						const tooManyMovies = new Discord.MessageEmbed()
-							.setColor(colorBlue)
+							.setColor(blue)
 							.setTitle('Your Movies')
 							.setThumbnail(radarrLogo)
 							.setDescription(
@@ -278,7 +171,7 @@ bot.on('message', async (message) => {
 					network.get_public_ip(function(err, ip) {
 						var output = err || `${ip}`;
 						const publicIP = new Discord.MessageEmbed()
-							.setColor(colorGreen)
+							.setColor(green)
 							.setTitle('Public IP Address')
 							.setThumbnail(routerIcon)
 							.setDescription(`Your public IP address is ${output}`);
@@ -296,7 +189,7 @@ bot.on('message', async (message) => {
 					network.get_private_ip(function(err, ip) {
 						var output = err || `${ip}`;
 						const privateIP = new Discord.MessageEmbed()
-							.setColor(colorGreen)
+							.setColor(green)
 							.setTitle('Private IP Address')
 							.setThumbnail(routerIcon)
 							.setDescription(`Your private IP address is ${output}`);
@@ -314,7 +207,7 @@ bot.on('message', async (message) => {
 					network.get_gateway_ip(function(err, ip) {
 						var output = err || `${ip}`;
 						const gatewayIP = new Discord.MessageEmbed()
-							.setColor(colorGreen)
+							.setColor(green)
 							.setTitle('Gateway Address')
 							.setThumbnail(routerIcon)
 							.setDescription(`Your gateway address is ${output}`);
@@ -334,7 +227,7 @@ bot.on('message', async (message) => {
 							err ||
 							`Type: ${int.name}\nMac Address: ${int.mac_address}\nIP: ${int.ip_address}\nSubnet: ${int.netmask}\nGateway: ${int.gateway_ip}`;
 						const interface = new Discord.MessageEmbed()
-							.setColor(colorGreen)
+							.setColor(green)
 							.setTitle('Interface Information')
 							.setThumbnail(routerIcon)
 							.setDescription(output);
