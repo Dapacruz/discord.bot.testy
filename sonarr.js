@@ -4,32 +4,33 @@ const Discord = require('discord.js');
 const { sonarrToken } = require('./config.json');
 const url = 'http://sonarr.thecruzs.net';
 const logo = 'https://i.imgur.com/zMUOCnv.png';
-const red = '#CC0000';
 
 module.exports = {
-	getInfo: getInfo,
-	search: search,
-	getImportHistory: getImportHistory,
-	getDeleteHistory: getDeleteHistory
+	getInfo,
+	search,
+	getImportHistory,
+	getDeleteHistory
 };
 
-function getInfo(message, color) {
+function getInfo(message, colors) {
 	fetch(`${url}/api/system/status?apikey=${sonarrToken}`)
 		.then((res) => {
+			if (res.status !== 200) return Promise.reject(`API fetch failed\nStatus code: ${res.status}`);
 			return res.json();
 		})
 		.then((json) => {
 			let description = `Version: ${json.version}\nHost OS: ${json.osName}\nOS Version: ${json.osVersion}\nSQLiteVersion: ${json.sqliteVersion}`;
-			sendMessage(message, 'Sonarr Information', description, color);
+			sendMessage(message, 'Sonarr Information', description, colors.blue);
 		})
 		.catch((err) => {
-			sendMessage(message, 'Sonarr Information', err, red);
+			sendMessage(message, 'Sonarr Information', err, colors.red);
 		});
 }
 
-function search(message, color) {
+function search(message, colors) {
 	fetch(`${url}/api/series?apikey=${sonarrToken}`)
 		.then((res) => {
+			if (res.status !== 200) return Promise.reject(`API fetch failed\nStatus code: ${res.status}`);
 			return res.json();
 		})
 		.then((json) => {
@@ -50,48 +51,59 @@ function search(message, color) {
 			});
 
 			if (count == 0) {
-				message.channel.send('No matches found!');
+				sendMessage(message, 'Your Shows', 'No matches found!', colors.red);
 				return;
 			}
-			sendMessage(message, 'Your Shows', results, color).catch(() => {
-				sendMessage(message, 'Your Shows', `Too many results found\nPlease visit [Sonarr](${url})`, red);
-			});
+			sendMessage(message, 'Your Shows', results, colors.blue)
+				.catch(() => {
+					sendMessage(
+						message,
+						'Your Shows',
+						`Too many results found\nPlease visit [Sonarr](${url})`,
+						colors.red
+					);
+				})
+				.catch((err) => {
+					sendMessage(message, 'Your Movies', err, colors.red);
+				});
 		});
 }
 
-function getImportHistory(message, color) {
-	fetch(`${url}/api/history?apikey=${sonarrToken}`)
+function getImportHistory(message, colors) {
+	fetch(`${url}/api/history?pageSize=25&apikey=${sonarrToken}`)
 		.then((res) => {
+			if (res.status !== 200) return Promise.reject(`API fetch failed\nStatus code: ${res.status}`);
 			return res.json();
 		})
 		.then((json) => {
-			let description;
+			let description = '';
 			json.records.forEach((series) => {
 				if (series.eventType === 'downloadFolderImported') {
-					description += `${series.series.title} (Season ${series.episode.seasonNumber})
+					description += `[${series.series.title}](${url}/series/${series.series.titleSlug}) (Season ${series
+						.episode.seasonNumber})
                     Episode ${series.episode.episodeNumber} - ${series.episode.title}\n\n`;
 				}
 			});
 			if (description) {
-				sendMessage(message, 'Sonarr Completed Downloads', description, color);
+				sendMessage(message, 'Sonarr Completed Downloads', description, colors.blue);
 			} else {
-				sendMessage(message, 'Sonarr Completed Downloads', 'No recently imported items!', red);
+				sendMessage(message, 'Sonarr Completed Downloads', 'No recently imported items!', colors.red);
 				return;
 			}
 		})
 		.catch((err) => {
-			console.error(err);
+			sendMessage(message, 'Sonarr Completed Downloads', err, colors.red);
 		});
 }
 
-function getDeleteHistory(message, color) {
-	fetch(`${url}/api/history?apikey=${sonarrToken}`)
+function getDeleteHistory(message, colors) {
+	fetch(`${url}/api/history?pageSize=25&apikey=${sonarrToken}`)
 		.then((res) => {
-			console.log(res);
+			if (res.status !== 200) return Promise.reject(`API fetch failed\nStatus code: ${res.status}`);
 			return res.json();
 		})
 		.then((json) => {
-			let description;
+			let description = '';
 			json.records.forEach(function(series) {
 				if (series.eventType === 'episodeFileDeleted') {
 					description += `${series.series.title} (Season ${series.episode.seasonNumber})
@@ -100,13 +112,13 @@ function getDeleteHistory(message, color) {
 				}
 			});
 			if (description) {
-				sendMessage(message, 'Sonarr Failed Downloads', description, color);
+				sendMessage(message, 'Sonarr Failed Downloads', description, colors.blue);
 			} else {
-				sendMessage(message, 'Sonarr Failed Downloads', 'No recently deleted items!', red);
+				sendMessage(message, 'Sonarr Failed Downloads', 'No recently deleted items!', colors.red);
 			}
 		})
 		.catch((err) => {
-			console.error(err);
+			sendMessage(message, 'Sonarr Failed Downloads', err, colors.red);
 		});
 }
 
