@@ -1,10 +1,14 @@
 const Discord = require('discord.js');
+const GphApiClient = require('giphy-js-sdk-core');
+const { prefix, ownerAuthorID, giphyToken } = require('./config.json');
 
-const { ownerAuthorID } = require('./config.json');
-const logo = 'https://i.imgur.com/hF7RRDx.png';
+const logo = 'https://i.imgur.com/5qQJb1d.png';
+
+const giphy = GphApiClient(giphyToken);
 
 module.exports = {
-	whois
+	whois,
+	getGiphy
 };
 
 async function whois(message, bot, colors) {
@@ -29,6 +33,28 @@ async function whois(message, bot, colors) {
 		} catch (err) {
 			sendMessage(message, 'Whois Info', err, colors.red);
 		}
+	}
+}
+
+function getGiphy(message) {
+	msg = message.content.replace(`${prefix}giphy`, '').trim();
+	if (msg) {
+		try {
+			giphy.search('gifs', { q: msg }).then((response) => {
+				var totalResponses = response.data.length;
+				var responseIndex = Math.floor(Math.random() * 10 + 1) % totalResponses;
+				var responseFinal = response.data[responseIndex];
+				if (responseFinal) {
+					message.channel.send({ files: [ responseFinal.images.fixed_height.url ] });
+				} else {
+					message.channel.send('Gif not found!');
+				}
+			});
+		} catch (err) {
+			message.channel.send(err);
+		}
+	} else {
+		message.channel.send('Huh?');
 	}
 }
 

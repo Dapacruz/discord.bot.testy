@@ -1,11 +1,10 @@
 const Discord = require('discord.js');
 const misc = require('./misc.js');
+const moderation = require('./moderation.js');
 const net = require('./net.js');
 const radarr = require('./radarr.js');
 const sonarr = require('./sonarr.js');
-const { exec } = require('child_process');
-const GphApiClient = require('giphy-js-sdk-core');
-const { prefix, ownerAuthorID, token, giphyToken } = require('./config.json');
+const { prefix, token } = require('./config.json');
 
 const colors = {
 	blue: '#00A1FF',
@@ -14,7 +13,6 @@ const colors = {
 };
 
 const bot = new Discord.Client();
-const giphy = GphApiClient(giphyToken);
 
 bot.once('ready', () => {
 	console.log('Testy is now online!');
@@ -90,70 +88,23 @@ bot.on('message', async (message) => {
 			break;
 
 		case 'bot.stop':
-			if (message.author.id === ownerAuthorID) {
-				try {
-					message.channel.send('Testy stopped!').then(() => {
-						process.exit(1);
-					});
-				} catch (err) {
-					return;
-				}
-			}
+			moderation.stopBot(message);
 			break;
 
 		case 'bot.restart':
-			if (message.author.id === ownerAuthorID) {
-				message.channel.send('Testy restarted!').then(() => {
-					process.exit(1);
-				});
-				exec('node .', (err, stdout, stderr) => {
-					if (err) {
-						return;
-					}
-				});
-			}
+			moderation.restartBot(message);
 			break;
 
 		case 'kick':
-			if (message.member.hasPermission([ 'KICK_MEMBERS', 'BAN_MEMBERS' ])) {
-				member.kick().then((member) => {
-					message.channel.send(`:wave: ${member.displayName} has been kicked!`);
-				});
-			} else {
-				message.channel.send('You do not have permission to perform this action!');
-			}
+			moderation.kickUser(message, member);
 			break;
 
 		case 'ban':
-			if (message.member.hasPermission([ 'BAN_MEMBERS' ])) {
-				member.ban().then((member) => {
-					message.channel.send(`:wave: ${member.displayName} has been banned!`);
-				});
-			} else {
-				message.channel.send('You do not have permission to perform this action!');
-			}
+			moderation.banUser(message, member);
 			break;
 
 		case 'giphy':
-			msg = message.content.replace(`${prefix}giphy`, '').trim();
-			if (msg) {
-				try {
-					giphy.search('gifs', { q: msg }).then((response) => {
-						var totalResponses = response.data.length;
-						var responseIndex = Math.floor(Math.random() * 10 + 1) % totalResponses;
-						var responseFinal = response.data[responseIndex];
-						if (responseFinal) {
-							message.channel.send({ files: [ responseFinal.images.fixed_height.url ] });
-						} else {
-							message.channel.send('Gif not found!');
-						}
-					});
-				} catch (err) {
-					message.channel.send(err);
-				}
-			} else {
-				message.channel.send('Huh?');
-			}
+			misc.getGiphy(message);
 			break;
 	}
 });
